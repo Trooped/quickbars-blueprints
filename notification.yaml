@@ -1,0 +1,359 @@
+blueprint:
+  name: QuickBars TV Notification
+  description: >
+    Send a TV overlay notification to QuickBars with optional image/sound and action buttons.
+    Optionally target a specific QuickBars App ID.
+    Note: Requires QuickBars TV app installed, accessibility and overlay services, and persistent background connection enabled.
+  domain: script
+  input:
+    app_id:
+      name: QuickBars App ID (optional)
+      description: 8-character ID from the TV app (Settings → “QuickBars App ID”). Leave blank to broadcast to all QuickBars devices on the local network.
+      default: ""
+      selector:
+        text: {}
+    title:
+      name: Title
+      description: Optional short headline.
+      default: ""
+      selector:
+        text: {}
+    message:
+      name: Message
+      description: Main text of the notification.
+      default: ""
+      selector:
+        text:
+          multiline: true
+    action_1_id:
+      name: Action 1 - ID
+      description: Internal identifier for the first action button (e.g., "turn_on")
+      default: ""
+      selector:
+        text: {}
+    action_1_label:
+      name: Action 1 - Label
+      description: Display text for the first action button (e.g., "Turn On")
+      default: ""
+      selector:
+        text: {}
+    action_1_action:
+      name: Action 1 - Action to Perform
+      description: Optional action(s) to run when this button is pressed
+      default: []
+      selector:
+        action: {}
+
+    action_2_id:
+      name: Action 2 - ID
+      description: Internal identifier for the second action button
+      default: ""
+      selector:
+        text: {}
+    action_2_label:
+      name: Action 2 - Label
+      description: Display text for the second action button
+      default: ""
+      selector:
+        text: {}
+    action_2_action:
+      name: Action 2 - Action to Perform
+      description: Optional action(s) to run when this button is pressed
+      default: []
+      selector:
+        action: {}
+
+    action_3_id:
+      name: Action 3 - ID
+      description: Internal identifier for the third action button
+      default: ""
+      selector:
+        text: {}
+    action_3_label:
+      name: Action 3 - Label
+      description: Display text for the third action button
+      default: ""
+      selector:
+        text: {}
+    action_3_action:
+      name: Action 3 - Action to Perform
+      description: Optional action(s) to run when this button is pressed
+      default: []
+      selector:
+        action: {}
+
+    color:
+      name: Color (RGB)
+      description: Optional accent/background color (#RRGGBB, [r,g,b], or {r,g,b}).
+      default:
+      selector:
+        color_rgb: {}
+    transparency:
+      name: Transparency (0–1)
+      description: 0.0 = opaque, 1.0 = fully transparent.
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.05
+    mdi_icon:
+      name: MDI Icon
+      description: Optional Material Design icon (e.g., mdi:bell).
+      default: ""
+      selector:
+        icon: {}
+    image_url:
+      name: Image URL / path / media_id
+      description: |-
+        Accepts:
+        - https://…
+        - /api/...
+        - /local/...
+        - /config/www/... or bare path (mapped to /local/…)
+        - Still images via `/api/camera_proxy/<camera_entity>`
+      default: ""
+      selector:
+        text: {}
+    sound_url:
+      name: Sound URL / path
+      description: >
+        Accepts: • https://… or /local/... or path under /config/www (→ /local/…)
+        Note: /media/local and /api sounds require auth and are blocked to
+        avoid TV playback errors.
+      default: ""
+      selector:
+        text: {}
+    sound_volume_percent:
+      name: Sound volume %
+      description: 0–200 (100 = system volume; >100 uses software boost).
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 200
+    length:
+      name: Duration (sec)
+      description: Auto-dismiss time (0–300).
+      default: 10
+      selector:
+        number:
+          min: 0
+          max: 300
+          step: 1
+          unit_of_measurement: seconds
+    interrupt:
+      name: Interrupt
+      description: If true, replace any currently shown overlay.
+      default: false
+      selector:
+        boolean: {}
+    position:
+      name: Position
+      description: Screen corner for the overlay.
+      default: top_left
+      selector:
+        select:
+          options:
+            - top_left
+            - top_right
+            - bottom_left
+            - bottom_right
+
+# Expose inputs to templates as variables
+variables:
+  app_id: !input app_id
+  title: !input title
+  message: !input message
+  action_1_id: !input action_1_id
+  action_1_label: !input action_1_label
+  action_1_action: !input action_1_action
+  action_2_id: !input action_2_id
+  action_2_label: !input action_2_label
+  action_2_action: !input action_2_action
+  action_3_id: !input action_3_id
+  action_3_label: !input action_3_label
+  action_3_action: !input action_3_action
+  color: !input color
+  transparency: !input transparency
+  position: !input position
+  length: !input length
+  interrupt: !input interrupt
+  mdi_icon: !input mdi_icon
+  image_url: !input image_url
+  sound_url: !input sound_url
+  sound_volume_percent: !input sound_volume_percent
+  _cid: "{{ now().timestamp() | int ~ '-' ~ (range(1000,9999) | random) }}"
+
+sequence:
+  # Guard: message must not be empty
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ (message | string | trim) == '' }}"
+        sequence:
+          - stop: Please provide a message.
+
+  # Normalize image URL (allow http/https, /api/**, /local/**, /config/www/**, bare paths)
+  - variables:
+      _img_raw: "{{ (image_url | default('')) | string }}"
+      _img_url: >-
+        {%- set s = _img_raw.strip() -%}
+        {%- if s.startswith('http://') or s.startswith('https://') -%}
+          {{ s }}
+        {%- elif s.startswith('/api/') or s.startswith('/local/') -%}
+          {{ s }}
+        {%- elif s.startswith('/config/www/') -%}
+          /local/{{ s.split('/config/www/')[1] }}
+        {%- elif s.startswith('config/www/') -%}
+          /local/{{ s.split('config/www/')[1] }}
+        {%- elif s.startswith('/www/') -%}
+          /local/{{ s.split('/www/')[1] }}
+        {%- elif s.startswith('www/') -%}
+          /local/{{ s.split('www/')[1] }}
+        {%- elif s and not s.startswith('/') -%}
+          /local/{{ s.lstrip('/') }}
+        {%- else -%}{% endif %}
+
+  # Normalize sound URL (allow http/https, /local/**, /config/www/**, bare paths; block /api & /media)
+  - variables:
+      _snd_raw: "{{ (sound_url | default('')) | string }}"
+      _snd_trim: "{{ _snd_raw.strip() }}"
+      _snd_norm: >-
+        {%- set s = _snd_trim -%}
+        {%- if s.startswith('http://') or s.startswith('https://') -%}
+          {{ s }}
+        {%- elif s.startswith('/local/') -%}
+          {{ s }}
+        {%- elif s.startswith('/config/www/') -%}
+          /local/{{ s.split('/config/www/')[1] }}
+        {%- elif s.startswith('config/www/') -%}
+          /local/{{ s.split('config/www/')[1] }}
+        {%- elif s.startswith('/www/') -%}
+          /local/{{ s.split('/www/')[1] }}
+        {%- elif s.startswith('www/') -%}
+          /local/{{ s.split('www/')[1] }}
+        {%- elif s and not s.startswith('/') -%}
+          /local/{{ s.lstrip('/') }}
+        {%- else -%}{% endif %}
+      _snd_blocked: |-
+        {{ _snd_trim.startswith('/media/local/')
+            or _snd_trim.startswith('media/local/')
+            or _snd_trim.startswith('media-source://')
+            or _snd_trim.startswith('/api/') }}
+      _snd_pct: "{{ (sound_volume_percent | default(100)) | int }}"
+
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ _snd_trim and _snd_blocked }}"
+        sequence:
+          - action: system_log.write
+            data:
+              level: warning
+              message: >-
+                QuickBars TV Notify: sound_url "{{ _snd_trim }}" requires HA
+                auth (/media or /api) and is not supported by TV player. Move
+                the file to /config/www and use /local/…, or use https://.
+
+  - variables:
+      _ev: |-
+        {{
+          dict(
+            title=title, 
+            message=message, 
+            actions=(
+              [
+                dict(id=action_1_id, label=action_1_label)
+              ] if (action_1_id | string | trim) else []
+            ) + (
+              [
+                dict(id=action_2_id, label=action_2_label)
+              ] if (action_2_id | string | trim) else []
+            ) + (
+              [
+                dict(id=action_3_id, label=action_3_label)
+              ] if (action_3_id | string | trim) else []
+            ),
+            duration=(length | int), 
+            position=position,
+            color=color, 
+            transparency=(transparency | float(0)),
+            interrupt=interrupt, cid=_cid
+          )
+          | combine( dict(mdi_icon=mdi_icon) if (mdi_icon | string | trim) else {} )
+          | combine( dict(image_url=_img_url) if _img_url|default('') else {} )
+          | combine( dict(sound_url=_snd_norm) if _snd_norm|default('') and not _snd_blocked else {} )
+          | combine( dict(sound_volume_percent=_snd_pct) if _snd_norm|default('') and not _snd_blocked else {} )
+        }}
+
+  - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ (app_id | string | trim) | length > 0 }}"
+          sequence:
+            - event: quickbars.notify
+              event_data:
+                id: "{{ app_id }}"
+                title: "{{ _ev.title }}"
+                message: "{{ _ev.message }}"
+                actions: "{{ _ev.actions }}"
+                duration: "{{ _ev.duration }}"
+                position: "{{ _ev.position }}"
+                color: "{{ _ev.color }}"
+                transparency: "{{ _ev.transparency }}"
+                interrupt: "{{ _ev.interrupt }}"
+                cid: "{{ _ev.cid }}"
+                mdi_icon: "{{ _ev.mdi_icon if _ev.get('mdi_icon') else omit }}"
+                image_url: "{{ _ev.image_url if _ev.get('image_url') else omit }}"
+                sound_url: "{{ _ev.sound_url if _ev.get('sound_url') else omit }}"
+                sound_volume_percent: "{{ _ev.sound_volume_percent if _ev.get('sound_volume_percent') else omit }}"
+    default:
+        - event: quickbars.notify
+          event_data:
+            title: "{{ _ev.title }}"
+            message: "{{ _ev.message }}"
+            actions: "{{ _ev.actions }}"
+            duration: "{{ _ev.duration }}"
+            position: "{{ _ev.position }}"
+            color: "{{ _ev.color }}"
+            transparency: "{{ _ev.transparency }}"
+            interrupt: "{{ _ev.interrupt }}"
+            cid: "{{ _ev.cid }}"
+            mdi_icon: "{{ _ev.mdi_icon if _ev.get('mdi_icon') else omit }}"
+            image_url: "{{ _ev.image_url if _ev.get('image_url') else omit }}"
+            sound_url: "{{ _ev.sound_url if _ev.get('sound_url') else omit }}"
+            sound_volume_percent: "{{ _ev.sound_volume_percent if _ev.get('sound_volume_percent') else omit }}"
+
+  - wait_for_trigger:
+      - trigger: event
+        event_type: quickbars.action
+    timeout:
+      seconds: "{{ length if length > 0 else 300 }}"
+    continue_on_timeout: false
+
+  - variables:
+      _action_id: "{{ wait.trigger.event.data.action_id | default('') }}"
+      _trigger_cid: "{{ wait.trigger.event.data.cid | default('') }}"
+
+  - condition: template
+    value_template: "{{ _trigger_cid == _cid }}"
+
+  - choose:
+      # Action 1
+      - conditions:
+          - condition: template
+            value_template: "{{ _action_id == action_1_id and action_1_action | length > 0 }}"
+        sequence: !input action_1_action
+      
+      # Action 2
+      - conditions:
+          - condition: template
+            value_template: "{{ _action_id == action_2_id and action_2_action | length > 0 }}"
+        sequence: !input action_2_action
+      
+      # Action 3
+      - conditions:
+          - condition: template
+            value_template: "{{ _action_id == action_3_id and action_3_action | length > 0 }}"
+        sequence: !input action_3_action
