@@ -24,152 +24,178 @@ blueprint:
     * For camera aliases: alias must be configured in QuickBars app
     
   domain: script
+  homeassistant:
+    min_version: "2024.6.0"
   input:
-    app_id:
-      name: QuickBars App ID (optional)
-      description: 8-character ID from the TV app (Settings → "QuickBars App ID"). Leave blank to broadcast to all QuickBars devices on the local network.
-      default: ""
-      selector:
-        text: {}
+    # ===== CAMERA SOURCE =====
+    source:
+      name: Camera Source
+      icon: mdi:cctv
+      collapsed: false
+      input:
+        source_type:
+          name: Source Type
+          description: Select the camera source you'd like to display.
+          default: entity
+          selector:
+            select:
+              options:
+                - label: Camera Entity
+                  value: entity
+                - label: QuickBars Camera Alias
+                  value: alias
+                - label: RTSP URL
+                  value: rtsp
+        
+        camera_entity:
+          name: Camera Entity
+          description: Used only when Source type = entity. This camera entity must be imported to the QuickBars app.
+          default: ""
+          selector:
+            entity:
+              filter:
+                - domain: camera
+        
+        camera_alias:
+          name: Camera Alias (QuickBars)
+          description: Used only when Source type = camera alias. Use the camera alias defined in the QuickBars app.
+          default: ""
+          selector:
+            text: {}
+        
+        rtsp_url:
+          name: RTSP URL
+          description: "Used only when Source type = rtsp. Example: rtsp://user:pass@host:554/path"
+          default: ""
+          selector:
+            text: {}
+        
+        mute_audio:
+          name: Mute Camera Audio (RTSP only)
+          description: Applies only to RTSP streams. Mutes audio from the camera feed.
+          default: false
+          selector:
+            boolean: {}
     
-    source_type:
-      name: Source Type
-      description: Select the camera source you'd like to display.
-      default: entity
-      selector:
-        select:
-          options:
-            - label: Camera Entity
-              value: entity
-            - label: QuickBars Camera Alias
-              value: alias
-            - label: RTSP URL
-              value: rtsp
+    # ===== SIZE & POSITION =====
+    layout:
+      name: Size & Position
+      icon: mdi:resize
+      collapsed: true
+      input:
+        position:
+          name: Position
+          description: Screen corner for the PiP window.
+          default: top_right
+          selector:
+            select:
+              options:
+                - top_left
+                - top_right
+                - bottom_left
+                - bottom_right
+        
+        size_mode:
+          name: Size Mode
+          description: |-
+            Choose how to size the camera PiP window:
+            - Auto: Existing camera size setting in QuickBars app (if imported camera) or default size.
+            - Preset: Choose from predefined sizes (small, medium, large).
+            - Custom: Specify exact width and height in pixels (can be used to support non-standard aspect ratios).
+          default: auto
+          selector:
+            select:
+              options:
+                - label: Auto
+                  value: auto
+                - label: Preset
+                  value: preset
+                - label: Custom
+                  value: custom
+        
+        size:
+          name: Size Preset
+          description: Used only when Size mode = preset. Choose from predefined sizes.
+          default: medium
+          selector:
+            select:
+              options:
+                - small
+                - medium
+                - large
+        
+        custom_width:
+          name: Custom Width (pixels)
+          description: Used only when Size mode = custom. Width in pixels (48–3840).
+          default: 640
+          selector:
+            number:
+              min: 48
+              max: 3840
+              step: 1
+              unit_of_measurement: px
+        
+        custom_height:
+          name: Custom Height (pixels)
+          description: Used only when Size mode = custom. Height in pixels (48–2160).
+          default: 360
+          selector:
+            number:
+              min: 48
+              max: 2160
+              step: 1
+              unit_of_measurement: px
     
-    camera_entity:
-      name: Camera Entity
-      description: Used only when Source type = entity. This camera entity must be imported to the QuickBars app.
-      default: ""
-      selector:
-        entity:
-          filter:
-            - domain: camera
+    # ===== BEHAVIOR =====
+    behavior:
+      name: Behavior
+      icon: mdi:cog
+      collapsed: true
+      input:
+        auto_hide:
+          name: Auto-hide (seconds)
+          description: Seconds before the camera automatically hides. Set to 0 to never auto-hide, requiring manual dismissal.
+          default: 30
+          selector:
+            number:
+              min: 0
+              max: 300
+              step: 1
+              unit_of_measurement: seconds
+
+        show_title:
+          name: Show Camera Title
+          description: Whether to show the camera's title in the PiP window.
+          default: true
+          selector:
+            boolean: {}
+        
+        camera_title:
+          name: Custom Camera Title
+          description: Optional custom title to display in the camera title bar (used when "Show camera title" is enabled). Leave blank to use the default camera name.
+          default: ""
+          selector:
+            text: {}
+        
+        show_toast:
+          name: Show Camera Toggle Toast
+          description: Whether to show a brief toast (pop-up message) when the camera PiP is toggled.
+          default: true
+          selector:
+            boolean: {}
     
-    camera_alias:
-      name: Camera Alias (QuickBars)
-      description: Used only when Source type = camera alias. Use the camera alias defined in the QuickBars app.
-      default: ""
-      selector:
-        text: {}
-    
-    rtsp_url:
-      name: RTSP URL
-      description: "Used only when Source type = rtsp. Example: rtsp://user:pass@host:554/path"
-      default: ""
-      selector:
-        text: {}
-    
-    mute_audio:
-      name: Mute Camera Audio (RTSP only)
-      description: Applies only to RTSP streams. Mutes audio from the camera feed.
-      default: false
-      selector:
-        boolean: {}
-    
-    position:
-      name: Position
-      description: Screen corner for the PiP window.
-      default: top_right
-      selector:
-        select:
-          options:
-            - top_left
-            - top_right
-            - bottom_left
-            - bottom_right
-    
-    size_mode:
-      name: Size Mode
-      description: |-
-        Choose how to size the camera PiP window:
-        - Auto: Existing camera size setting in QuickBars app (if imported camera) or default size.
-        - Preset: Choose from predefined sizes (small, medium, large).
-        - Custom: Specify exact width and height in pixels (can be used to support non-standard aspect ratios).
-      default: auto
-      selector:
-        select:
-          options:
-            - label: Auto
-              value: auto
-            - label: Preset
-              value: preset
-            - label: Custom
-              value: custom
-    
-    size:
-      name: Size Preset
-      description: Used only when Size mode = preset. Choose from predefined sizes.
-      default: medium
-      selector:
-        select:
-          options:
-            - small
-            - medium
-            - large
-    
-    custom_width:
-      name: Custom Width (pixels)
-      description: Used only when Size mode = custom. Width in pixels (48–3840).
-      default: 640
-      selector:
-        number:
-          min: 48
-          max: 3840
-          step: 1
-          unit_of_measurement: px
-    
-    custom_height:
-      name: Custom Height (pixels)
-      description: Used only when Size mode = custom. Height in pixels (48–2160).
-      default: 360
-      selector:
-        number:
-          min: 48
-          max: 2160
-          step: 1
-          unit_of_measurement: px
-    
-    auto_hide:
-      name: Auto-hide (seconds)
-      description: Seconds before the camera automatically hides. Set to 0 to never auto-hide, requiring manual dismissal.
-      default: 30
-      selector:
-        number:
-          min: 0
-          max: 300
-          step: 1
-          unit_of_measurement: seconds
-    
-    show_title:
-      name: Show Camera Title
-      description: Whether to show the camera's title bar in the PiP window.
-      default: true
-      selector:
-        boolean: {}
-    
-    camera_title:
-      name: Custom Camera Title
-      description: Optional custom title to display in the camera title bar (used when "Show camera title" is enabled).
-      default: ""
-      selector:
-        text: {}
-    
-    show_toast:
-      name: Show Camera Toggle Toast
-      description: Whether to show a brief toast (pop-up message) when the camera PiP is toggled.
-      default: true
-      selector:
-        boolean: {}
+    # ===== TARGETING =====
+    targeting:
+      name: QuickBars Device Targeting
+      icon: mdi:bullseye
+      collapsed: true
+      input:
+        app_id:
+          name: QuickBars App ID (optional)
+          description: 8-character ID from the TV app (Settings → "QuickBars App ID"). Leave blank to broadcast to all QuickBars devices on the local network.
+          default: ""
+          selector:
+            text: {}
 
 # Expose inputs to templates as variables
 variables:
