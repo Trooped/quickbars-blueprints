@@ -1,9 +1,32 @@
 blueprint:
   name: QuickBars TV Notification
-  description: >
-    Send a TV overlay notification to QuickBars with optional image/sound and action buttons.
-    Optionally target a specific QuickBars App ID.
-    Note: Requires QuickBars TV app installed, accessibility and overlay services, and persistent background connection enabled.
+  description: |
+    ## QuickBars TV Notification v1.0.0
+    
+    Send rich TV overlay notifications to QuickBars for Home Assistant with customizable appearance, media, and interactive action buttons.
+    
+    ### Features
+    
+    * Display notifications on your Android/Google TV
+    * Customize colors, position, transparency, and duration
+    * Add Material Design icons or custom images
+    * Play notification sounds with adjustable volume (0-200%)
+    * Up to 3 interactive action buttons with automatic response handling
+    * Target specific devices by App ID or broadcast to all devices on your network
+    
+    ### Requirements
+    
+    * QuickBars for Home Assistant v1.3 installed on your Android/Google TV
+    * Accessibility service enabled for QuickBars
+    * Display over other apps permission enabled for QuickBars
+    * Persistent background connection enabled (Settings → Connection in the app)
+    
+    ### Important Notes
+    
+    * The script will automatically handle button presses and execute configured actions
+    * Notifications with actions can be dismissed early by pressing the back button on your remote
+    * Images must be accessible via HTTP/HTTPS or placed in `/config/www/` (served as `/local/`)
+    * Sounds must be in a format supported by Android TV (MP3, WAV recommended, but feel free to try out other formats)
   domain: script
   input:
     app_id:
@@ -28,7 +51,7 @@ blueprint:
 
     mdi_icon:
       name: MDI Icon
-      description: Optional Material Design icon (e.g., mdi:bell).
+      description: Optional Material Design icon (e.g., mdi:bell) to display in the title row.
       default: ""
       selector:
         icon: {}
@@ -53,7 +76,7 @@ blueprint:
         text: {}
     sound_volume_percent:
       name: Sound volume %
-      description: 0–200 (100 = system volume; >100 uses software boost).
+      description: 0–200 (100 = system volume; >100 uses software boost, may distort/clip).
       default: 100
       selector:
         number:
@@ -61,23 +84,23 @@ blueprint:
           max: 200
     length:
       name: Duration (sec)
-      description: Auto-dismiss time (0–300).
+      description: Auto-dismiss time (3–300). Notifications with actions can be dismissed earlier by clicking the back button.
       default: 10
       selector:
         number:
-          min: 0
+          min: 3
           max: 300
           step: 1
           unit_of_measurement: seconds
     interrupt:
       name: Interrupt
-      description: If true, replace any currently shown overlay.
+      description: If true, replace any currently shown notification.
       default: false
       selector:
         boolean: {}
     position:
       name: Position
-      description: Screen corner for the overlay.
+      description: Screen corner for the notification.
       default: top_left
       selector:
         select:
@@ -89,13 +112,13 @@ blueprint:
 
     color:
       name: Color (RGB)
-      description: Optional accent/background color (#RRGGBB, [r,g,b], or {r,g,b}).
+      description: Optional custom background color for the notification.
       default:
       selector:
         color_rgb: {}
     transparency:
       name: Transparency (0–1)
-      description: 0.0 = opaque, 1.0 = fully transparent.
+      description: Sets the notification transparency. 0.0 = opaque, 1.0 = fully transparent.
       default: 0
       selector:
         number:
