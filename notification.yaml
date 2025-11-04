@@ -25,6 +25,84 @@ blueprint:
       selector:
         text:
           multiline: true
+
+    mdi_icon:
+      name: MDI Icon
+      description: Optional Material Design icon (e.g., mdi:bell).
+      default: ""
+      selector:
+        icon: {}
+    image_url:
+      name: Image URL / path / media_id
+      description: |-
+        Accepts:
+        - https://… (absolute URL, ending with .jpg, .png, etc.)
+        - /config/www/... or relative path after www/
+        - /api/camera_proxy/<camera_entity>  (still image)
+      default: ""
+      selector:
+        text: {}
+    sound_url:
+      name: Sound URL / path
+      description: |-
+        Accepts:
+        - https://… (absolute URL, ending with .mp3 etc.)
+        - /config/www/... or relative path after www/
+      default: ""
+      selector:
+        text: {}
+    sound_volume_percent:
+      name: Sound volume %
+      description: 0–200 (100 = system volume; >100 uses software boost).
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 200
+    length:
+      name: Duration (sec)
+      description: Auto-dismiss time (0–300).
+      default: 10
+      selector:
+        number:
+          min: 0
+          max: 300
+          step: 1
+          unit_of_measurement: seconds
+    interrupt:
+      name: Interrupt
+      description: If true, replace any currently shown overlay.
+      default: false
+      selector:
+        boolean: {}
+    position:
+      name: Position
+      description: Screen corner for the overlay.
+      default: top_left
+      selector:
+        select:
+          options:
+            - top_left
+            - top_right
+            - bottom_left
+            - bottom_right
+
+    color:
+      name: Color (RGB)
+      description: Optional accent/background color (#RRGGBB, [r,g,b], or {r,g,b}).
+      default:
+      selector:
+        color_rgb: {}
+    transparency:
+      name: Transparency (0–1)
+      description: 0.0 = opaque, 1.0 = fully transparent.
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.05
+    
     action_1_id:
       name: Action 1 - ID
       description: Internal identifier for the first action button (e.g., "turn_on")
@@ -81,84 +159,7 @@ blueprint:
       default: []
       selector:
         action: {}
-
-    color:
-      name: Color (RGB)
-      description: Optional accent/background color (#RRGGBB, [r,g,b], or {r,g,b}).
-      default:
-      selector:
-        color_rgb: {}
-    transparency:
-      name: Transparency (0–1)
-      description: 0.0 = opaque, 1.0 = fully transparent.
-      default: 0
-      selector:
-        number:
-          min: 0
-          max: 1
-          step: 0.05
-    mdi_icon:
-      name: MDI Icon
-      description: Optional Material Design icon (e.g., mdi:bell).
-      default: ""
-      selector:
-        icon: {}
-    image_url:
-      name: Image URL / path / media_id
-      description: |-
-        Accepts:
-        - https://…
-        - /api/...
-        - /local/...
-        - /config/www/... or bare path (mapped to /local/…)
-        - Still images via `/api/camera_proxy/<camera_entity>`
-      default: ""
-      selector:
-        text: {}
-    sound_url:
-      name: Sound URL / path
-      description: >
-        Accepts: • https://… or /local/... or path under /config/www (→ /local/…)
-        Note: /media/local and /api sounds require auth and are blocked to
-        avoid TV playback errors.
-      default: ""
-      selector:
-        text: {}
-    sound_volume_percent:
-      name: Sound volume %
-      description: 0–200 (100 = system volume; >100 uses software boost).
-      default: 100
-      selector:
-        number:
-          min: 0
-          max: 200
-    length:
-      name: Duration (sec)
-      description: Auto-dismiss time (0–300).
-      default: 10
-      selector:
-        number:
-          min: 0
-          max: 300
-          step: 1
-          unit_of_measurement: seconds
-    interrupt:
-      name: Interrupt
-      description: If true, replace any currently shown overlay.
-      default: false
-      selector:
-        boolean: {}
-    position:
-      name: Position
-      description: Screen corner for the overlay.
-      default: top_left
-      selector:
-        select:
-          options:
-            - top_left
-            - top_right
-            - bottom_left
-            - bottom_right
+    
 
 # Expose inputs to templates as variables
 variables:
