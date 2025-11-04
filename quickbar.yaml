@@ -1,0 +1,65 @@
+blueprint:
+  name: QuickBars Toggle QuickBar
+  description: |
+    ## QuickBars Toggle QuickBar v1.0.0
+    
+    Open or close a QuickBar overlay on your Android/Google TV by its alias.
+    
+    ### Features
+    
+    * Toggle any QuickBar configured in the QuickBars app
+    * Simple alias-based control
+    * Target specific devices by App ID or broadcast to all devices on your network
+    
+    ### Requirements
+    
+    * QuickBars for Home Assistant v1.3+ installed on your Android/Google TV
+    * Accessibility service enabled for QuickBars
+    * Display over other apps permission enabled for QuickBars
+    * Persistent background connection enabled (Settings → Connection in the app)
+    * Your QuickBar must be configured in the QuickBars app with an alias
+    
+  domain: script
+  input:
+    app_id:
+      name: QuickBars App ID (optional)
+      description: 8-character ID from the TV app (Settings → "QuickBars App ID"). Leave blank to broadcast to all QuickBars devices on the local network.
+      default: ""
+      selector:
+        text: {}
+    
+    alias:
+      name: QuickBar Alias
+      description: The QuickBar alias as configured in the QuickBars TV app.
+      default: ""
+      selector:
+        text: {}
+
+# Expose inputs to templates as variables
+variables:
+  app_id: !input app_id
+  alias: !input alias
+
+sequence:
+  # Validation: Check that alias is provided
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ not (alias | string | trim) }}"
+        sequence:
+          - stop: Enter a QuickBar alias.
+  
+  # Fire event with or without app_id
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ (app_id | string | trim) | length > 0 }}"
+        sequence:
+          - event: quickbars.open
+            event_data:
+              id: "{{ app_id }}"
+              alias: "{{ alias }}"
+    default:
+      - event: quickbars.open
+        event_data:
+          alias: "{{ alias }}"
