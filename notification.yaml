@@ -28,6 +28,8 @@ blueprint:
     * Images must be accessible via HTTP/HTTPS or placed in `/config/www/` (served as `/local/`)
     * Sounds must be in a format supported by Android TV (MP3, WAV recommended, but feel free to try out other formats)
   domain: script
+  author: Trooped / Omri
+  source_url: https://github.com/Trooped/quickbars-blueprints/blob/main/notification.yaml
   homeassistant:
     min_version: "2024.6.0"
   input:

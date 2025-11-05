@@ -20,6 +20,8 @@ blueprint:
     * Your QuickBar must be configured in the QuickBars app with an alias
     
   domain: script
+  author: Trooped / Omri
+  source_url: https://github.com/Trooped/quickbars-blueprints/blob/main/quickbar.yaml
   input:
     app_id:
       name: QuickBars App ID (optional)

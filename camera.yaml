@@ -22,8 +22,9 @@ blueprint:
     * Persistent background connection enabled (Settings → Connection in the app)
     * For camera entities: camera must be imported in QuickBars app
     * For camera aliases: alias must be configured in QuickBars app
-    
   domain: script
+  author: Trooped / Omri
+  source_url: https://github.com/Trooped/quickbars-blueprints/blob/main/camera.yaml
   homeassistant:
     min_version: "2024.6.0"
   input:
