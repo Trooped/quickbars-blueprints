@@ -1,8 +1,8 @@
 blueprint:
-  name: QuickBars Toggle QuickBar
+  name: QuickBars - Toggle QuickBar
   description: |
-    ## QuickBars Toggle QuickBar v1.0.0
-    
+    ## QuickBars - Toggle QuickBar v1.0.0
+
     Open or close a QuickBar overlay on your Android/Google TV by its alias.
     
     ### Features

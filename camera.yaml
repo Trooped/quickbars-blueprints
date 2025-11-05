@@ -1,8 +1,8 @@
 blueprint:
-  name: QuickBars TV Camera (PiP)
+  name: QuickBars - Display Camera PiP
   description: |
-    ## QuickBars TV Camera (PiP) v1.0.0
-    
+    ## QuickBars - Display Camera PiP v1.0.0
+
     Toggle a live picture-in-picture camera view on your Android/Google TV with customizable size, position, and appearance.
     
     ### Features

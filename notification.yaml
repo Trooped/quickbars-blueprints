@@ -1,7 +1,7 @@
 blueprint:
-  name: QuickBars TV Notification
+  name: QuickBars - Display Notification
   description: |
-    ## QuickBars TV Notification v1.0.0
+    ## QuickBars - Display Notification v1.0.0
     
     Send rich TV overlay notifications to QuickBars for Home Assistant with customizable appearance, media, and interactive action buttons.
     
