@@ -5,9 +5,9 @@ blueprint:
 
     Toggle a live picture-in-picture camera view on your Android/Google TV with customizable size, position, and appearance.
 
-    ### New in v1.1
+    ### New in v1.1 (QuickBars v1.3.2+ required)
     * **Transport Control:** Force TCP / UDP.
-    * **Latency Tuning:** Choose Low (for PTZ) or High Stability (for bad WiFi).
+    * **Latency Tuning:** Choose between Low, Balanced, or High Stability.
     * **Software Decoder:** Fixes issues on some streams, requires higher processing power.
     
     ### Features
@@ -16,7 +16,7 @@ blueprint:
     * Three source types: Home Assistant camera entity, QuickBars camera alias, or direct RTSP URL
     * Flexible sizing: auto-detect, preset sizes (small/medium/large), or custom dimensions
     * Customize position, title, toast, auto-hide behavior
-    * Mute audio for RTSP streams
+    * Advanced configuration for RTSP streams
     * Target specific devices by App ID or broadcast to all devices on your network
     
     ### Requirements
@@ -75,20 +75,20 @@ blueprint:
           default: ""
           selector:
             text: {}
-        
+
+    # ===== ADVANCED RTSP SETTINGS =====
+    rtsp_advanced:
+      name: Advanced RTSP Settings
+      icon: mdi:wrench
+      collapsed: true
+      input:
         mute_audio:
-          name: Mute Camera Audio (RTSP only)
-          description: Applies only to RTSP streams. Mutes audio from the camera feed.
+          name: Mute Camera Audio
+          description: Mutes audio from the camera feed.
           default: false
           selector:
             boolean: {}
 
-    # ===== ADVANCED RTSP SETTINGS (NEW) =====
-    rtsp_advanced:
-      name: Advanced RTSP Settings
-      icon: mdi:wrench
-      collapsed: false
-      input:
         rtsp_transport:
           name: Transport Protocol
           description: "TCP is recommended for Home Assistant to prevent artifacts/smearing. UDP is faster but requires a stable WiFi."
@@ -119,7 +119,7 @@ blueprint:
 
         software_decoder:
           name: Force Software Decoder
-          description: "Enable this if you don't see any stream. Forces the CPU to decode video (may require higher processing power)."
+          description: "Try enabling this if you don't see any stream. Forces the CPU to decode video (requires higher processing power and may cause stuttering)."
           default: false
           selector:
             boolean: {}
