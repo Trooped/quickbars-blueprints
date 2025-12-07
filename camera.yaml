@@ -1,9 +1,14 @@
 blueprint:
   name: QuickBars - Display Camera PiP
   description: |
-    ## QuickBars - Display Camera PiP v1.0.0
+    ## QuickBars - Display Camera PiP v1.1
 
     Toggle a live picture-in-picture camera view on your Android/Google TV with customizable size, position, and appearance.
+
+    ### New in v1.1
+    * **Transport Control:** Force TCP / UDP.
+    * **Latency Tuning:** Choose Low (for PTZ) or High Stability (for bad WiFi).
+    * **Software Decoder:** Fixes issues on some streams, requires higher processing power.
     
     ### Features
     
@@ -74,6 +79,47 @@ blueprint:
         mute_audio:
           name: Mute Camera Audio (RTSP only)
           description: Applies only to RTSP streams. Mutes audio from the camera feed.
+          default: false
+          selector:
+            boolean: {}
+
+    # ===== ADVANCED RTSP SETTINGS (NEW) =====
+    rtsp_advanced:
+      name: Advanced RTSP Settings
+      icon: mdi:wrench
+      collapsed: false
+      input:
+        rtsp_transport:
+          name: Transport Protocol
+          description: "TCP is recommended for Home Assistant to prevent artifacts/smearing. UDP is faster but requires a stable WiFi."
+          default: tcp
+          selector:
+            select:
+              options:
+                - label: TCP (Recommended)
+                  value: tcp
+                - label: UDP (Faster, Low Latency)
+                  value: udp
+                - label: Auto
+                  value: auto
+
+        rtsp_latency:
+          name: Stream Latency / Buffer
+          description: "Low = 500ms buffer (fast). Balanced = 1s buffer. High = 2.5s buffer (fixes stuttering)."
+          default: balanced
+          selector:
+            select:
+              options:
+                - label: Low Latency
+                  value: low
+                - label: Balanced (Standard)
+                  value: balanced
+                - label: High Stability
+                  value: high
+
+        software_decoder:
+          name: Force Software Decoder
+          description: "Enable this if you don't see any stream. Forces the CPU to decode video (may require higher processing power)."
           default: false
           selector:
             boolean: {}
@@ -206,6 +252,9 @@ variables:
   camera_alias: !input camera_alias
   rtsp_url: !input rtsp_url
   mute_audio: !input mute_audio
+  rtsp_transport: !input rtsp_transport
+  rtsp_latency: !input rtsp_latency
+  software_decoder: !input software_decoder
   position: !input position
   size_mode: !input size_mode
   size: !input size
@@ -358,6 +407,9 @@ sequence:
                       camera_title: "{{ camera_title if (camera_title | string | trim) else none }}"
                       show_toast: "{{ show_toast }}"
                       mute_audio: "{{ mute_audio }}"
+                      rtsp_transport: "{{ rtsp_transport }}"
+                      rtsp_latency: "{{ rtsp_latency }}"
+                      software_decoder: "{{ software_decoder }}"
               
               # RTSP + Preset
               - conditions:
@@ -375,6 +427,9 @@ sequence:
                       camera_title: "{{ camera_title if (camera_title | string | trim) else none }}"
                       show_toast: "{{ show_toast }}"
                       mute_audio: "{{ mute_audio }}"
+                      rtsp_transport: "{{ rtsp_transport }}"
+                      rtsp_latency: "{{ rtsp_latency }}"
+                      software_decoder: "{{ software_decoder }}"
               
               # RTSP + Auto
               - conditions:
@@ -391,6 +446,9 @@ sequence:
                       camera_title: "{{ camera_title if (camera_title | string | trim) else none }}"
                       show_toast: "{{ show_toast }}"
                       mute_audio: "{{ mute_audio }}"
+                      rtsp_transport: "{{ rtsp_transport }}"
+                      rtsp_latency: "{{ rtsp_latency }}"
+                      software_decoder: "{{ software_decoder }}"
     default:
       - choose:
           # Entity + Custom
@@ -502,6 +560,9 @@ sequence:
                   camera_title: "{{ camera_title if (camera_title | string | trim) else none }}"
                   show_toast: "{{ show_toast }}"
                   mute_audio: "{{ mute_audio }}"
+                  rtsp_transport: "{{ rtsp_transport }}"
+                  rtsp_latency: "{{ rtsp_latency }}"
+                  software_decoder: "{{ software_decoder }}"
           
           # RTSP + Preset
           - conditions:
@@ -518,6 +579,9 @@ sequence:
                   camera_title: "{{ camera_title if (camera_title | string | trim) else none }}"
                   show_toast: "{{ show_toast }}"
                   mute_audio: "{{ mute_audio }}"
+                  rtsp_transport: "{{ rtsp_transport }}"
+                  rtsp_latency: "{{ rtsp_latency }}"
+                  software_decoder: "{{ software_decoder }}"
           
           # RTSP + Auto
           - conditions:
@@ -533,3 +597,6 @@ sequence:
                   camera_title: "{{ camera_title if (camera_title | string | trim) else none }}"
                   show_toast: "{{ show_toast }}"
                   mute_audio: "{{ mute_audio }}"
+                  rtsp_transport: "{{ rtsp_transport }}"
+                  rtsp_latency: "{{ rtsp_latency }}"
+                  software_decoder: "{{ software_decoder }}"
