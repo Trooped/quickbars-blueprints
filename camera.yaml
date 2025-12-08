@@ -6,8 +6,9 @@ blueprint:
     Toggle a live picture-in-picture camera view on your Android/Google TV with customizable size, position, and appearance.
 
     ### New in v1.1 (QuickBars v1.3.2+ required)
-    * **Transport Control:** Force TCP / UDP.
-    * **Latency Tuning:** Choose between Low, Balanced, or High Stability.
+    #### Advanced RTSP Settings
+    * **Transport Control:** Force TCP / UDP or use Auto to determine automatically.
+    * **Latency Tuning:** Choose between Low, Balanced, or High latency.
     * **Software Decoder:** Fixes issues on some streams, requires higher processing power.
     
     ### Features
